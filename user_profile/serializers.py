@@ -4,7 +4,8 @@ from user_accounts.models import UserProfile
 from rest_framework.serializers import ImageField, ValidationError, ModelSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from .models import UserBasicDetails
+from .models import UserBasicDetails, ProfessionalDetails
+
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,7 +23,6 @@ class ProfileSerializer(ModelSerializer):
     
 
     def update(self, instance, validated_data):
-
         # new_phone_number = validated_data.get('phone_number', instance.phone_number)
         # if UserProfile.phone_number != new_phone_number and UserProfile.objects.filter(phone_number = new_phone_number).exists():
         #     return Response({'error' : "phone number is already exists!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -33,6 +33,7 @@ class ProfileSerializer(ModelSerializer):
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.profile_img = validated_data.get('profile_img', instance.profile_img)
         instance.gender = validated_data.get('gender', instance.gender)
+        instance.unique_user_id = self.context.get("user_unique_id")
         instance.save()
 
 
@@ -40,18 +41,18 @@ class ProfileSerializer(ModelSerializer):
         return instance
     
 
-class UserDetailsSeriallzer(ModelSerializer):
+
+
+class UserDetailsSeriallzer(serializers.ModelSerializer):
     class Meta:
         model = UserBasicDetails
-        fields = "__all__"
-    
-    def update(self, instance, validated_data, user):
-        
-        try:
-            user_birthday = UserProfile.objects.filter(user = user)
-        except:
-            print("value not found")
+        fields = ('mother_tongue', 'eating_habit', 'drinking_habit', 'smoking_habit', 'martial_status', 'height', 'body_type', 'physical_status' )
+
+    def update(self, instance, validated_data):
+        # Update the instance with validated_data
+        print("::::::::::::::::::::::::::: serializer updating is working::::::::::::::::::::::::::::::::")
         instance.mother_tongue = validated_data.get('mother_tongue', instance.mother_tongue)
+        instance.age = self.context.get("user_age")
         instance.eating_habit = validated_data.get('eating_habit', instance.eating_habit)
         instance.drinking_habit = validated_data.get('drinking_habit', instance.drinking_habit)
         instance.smoking_habit = validated_data.get('smoking_habit', instance.smoking_habit)
@@ -59,4 +60,22 @@ class UserDetailsSeriallzer(ModelSerializer):
         instance.height = validated_data.get('height', instance.height)
         instance.body_type = validated_data.get('body_type', instance.body_type)
         instance.physical_status = validated_data.get('physical_status', instance.physical_status)
-                                                    
+
+        # Save the instance after updating
+        instance.save()
+        return instance
+    
+class UserProfessionalDetailsSeriallzer(ModelSerializer):
+    class Meta:
+        model = ProfessionalDetails
+        field = "__all__"
+
+    def update(self, instance, validated_data):
+        instance.education = validated_data.get('education', instance.education)
+        instance.college = validated_data.get('college', instance.college)
+        instance.working_sector = validated_data.get('working_sector', instance.working_sector)
+        instance.income = validated_data.get('income', instance.income)
+        instance.occupation = validated_data.get('occupation', instance.occupation)
+        instance.organization = validated_data.get('organization', instance.organization)
+
+        return instance
