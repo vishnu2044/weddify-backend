@@ -47,6 +47,8 @@ INSTALLED_APPS = [
 
     'user_accounts.apps.UserAccountsConfig',
     'user_profile.apps.UserProfileConfig',
+    'user_preferences.apps.UserPreferencesConfig',
+    'preferred_matches.apps.PreferredMatchesConfig',
 
 ]
 

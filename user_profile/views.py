@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import UserSerializer, ProfileSerializer, UserDetailsSeriallzer, UserProfessionalDetailsSeriallzer
+from .serializers import UserSerializer, ProfileSerializer, UserDetailsSeriallzer, UserProfessionalDetailsSeriallzer, UserReligionalDetailsSeriallzer
 from user_accounts.models import UserProfile
-from .models import UserBasicDetails, ProfessionalDetails
+from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails
+from user_preferences.views import auto_add_basic_preferences, auto_update_professional_preference, auto_update_religional_preferences
 
 import time
 from datetime import datetime, date
@@ -123,6 +124,8 @@ def UpdateUserProfile(request):
     return Response(data)
 
 
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_basic_details(request):
@@ -139,6 +142,8 @@ def get_basic_details(request):
             "height": basic_details.height,
             "body_type": basic_details.body_type,
             "physical_status": basic_details.physical_status,
+            "location": basic_details.location,
+            "citizenship": basic_details.citizenship,
 
         }
         return Response(data)
@@ -150,37 +155,36 @@ def get_basic_details(request):
 @api_view(['PATCH'])
 def update_basic_details(request):
     user = request.user
+
     try:
-        basic_details =  UserBasicDetails.objects.get(user = user)
+        basic_details = UserBasicDetails.objects.get(user=user)
     except UserBasicDetails.DoesNotExist:
         basic_details = UserBasicDetails.objects.create(user=user)
+
     try:
         user_profile = UserProfile.objects.get(user=user)
-
     except UserBasicDetails.DoesNotExist:
         print("date not found::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-    print("input data :::::::::::::::::::::::::::::::", request.data)
-    print("database :::::::::::::::::::::: ", basic_details)
 
     if user_profile:
         date_of_birth = user_profile.date_of_birth
         user_age = calculate_age_basic_details(date_of_birth)
-        print("date of birth ::::::::::::::::::::::::::::::::::", date_of_birth)
+
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, context={'user_age': user_age}, partial=True)
     else:
-        serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data,  partial=True)
-
-
+        serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, partial=True)
 
     if serializer.is_valid():
-        print(":::::::::::::::::::::::   basic details serializer is valid ::::::::::::::::::::::::::::::")
+        print("serializer is valid !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         serializer.save()
+        auto_add_basic_preferences(request)  # Pass the data to the function
+
         data = serializer.data
-        print("serializer data ::::::::::::::::::::::::::::::::::", data)
     else:
         data = serializer.errors
-        print("basic details serializer is not working  error ::::::::::::::::", data)
+
     return Response(data)
+
 
 
 @api_view(['GET'])
@@ -204,24 +208,69 @@ def get_professional_details(request):
     except ProfessionalDetails.DoesNotExist:
         return Response({'error' : "user didnt added user professional details !"}, status=status.HTTP_400_BAD_REQUEST)
     
-
+@api_view(['PATCH'])
 def update_professional_data(request):
     user = request.user
 
     try:
         professional_details = ProfessionalDetails.objects.get(user = user)
-    except UserBasicDetails.DoesNotExist:
+
+    except ProfessionalDetails.DoesNotExist:
         professional_details = ProfessionalDetails.objects.create(user = user)
+
     
     serializer = UserProfessionalDetailsSeriallzer(instance = professional_details, data = request.data,  partial=True)
 
     if serializer.is_valid():
         serializer.save()
-        print(":::::::::::::::::::  serializer is saved  :::::::::::::::::::::::::::::::::::::::::")
         data = serializer.data
+        auto_update_professional_preference(request)
     else:
         data = serializer.errors
-        print(":::::::::::::::::::  serializer is failed  :::::::::::::::::::::::::::::::::::::::::")
+
     
     return Response(data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_religional_details(request):
+    user = request.user
+
+    try:
+        religional_details = ReligionalDetails.objects.get(user = user)
+
+        data = {
+            "religion": religional_details.religion,
+            "caste": religional_details.caste,
+            "star": religional_details.star,
+
+        }
+        return Response(data)
+
+    except ReligionalDetails.DoesNotExist:
+        return Response({'error' : "user didnt added user preligional details !"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_religional_data(request):
+    user = request.user
+
+    try:
+        religional_details = ReligionalDetails.objects.get(user = user)
+
+    except ReligionalDetails.DoesNotExist:
+        religional_details = ReligionalDetails.objects.create(user = user)
+        
+
+    
+    serializer = UserReligionalDetailsSeriallzer(instance = religional_details, data = request.data,  partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        auto_update_religional_preferences(request)
+        data = serializer.data
+    else:
+        data = serializer.errors
+
+    
+    return Response(data)

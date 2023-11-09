@@ -26,6 +26,8 @@ urlpatterns = [
     path('userauth/', include('user_accounts.urls')),
     path('signup/', views.Register.as_view(), name='signup'),
     path('userprofile/', include('user_profile.urls')),
+    path('userpreferences/', include('user_preferences.urls')),
+    path('preferedmatches/', include('preferred_matches.urls')),
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

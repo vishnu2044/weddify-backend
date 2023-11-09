@@ -2,11 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 
-
 # Create your models here.
-class UserBasicDetails(models.Model):
+class BasicPreferences(models.Model):
     user = models.ForeignKey( User, on_delete=models.CASCADE, null = True )
-    age = models.IntegerField( blank =True, null =True, validators=[MinValueValidator(18)] )
+    age_from = models.IntegerField( blank =True, null =True, validators=[MinValueValidator(18)] )
+    age_to = models.IntegerField( blank =True, null =True, validators=[MinValueValidator(18)] )
     mother_tongue = models.CharField( max_length=100, blank=True, null=True )
     eating_habit = models.CharField( max_length=100, blank=True, null=True )
     drinking_habit = models.CharField( max_length=100, blank=True, null=True )
@@ -18,11 +18,10 @@ class UserBasicDetails(models.Model):
     physical_status = models.CharField( max_length=100, blank=True, null=True )
     location = models.CharField( max_length=100, blank=True, null=True )
     citizenship = models.CharField( max_length=100, blank=True, null=True )
-    
-    
+    gender = models.CharField( max_length=100, blank=True, null=True )
 
 
-class ProfessionalDetails(models.Model):
+class ProfessionalPreferences(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     education = models.CharField( max_length=255, null=True, blank=True)
     college = models.CharField( max_length=255, null=True, blank=True)
@@ -31,21 +30,9 @@ class ProfessionalDetails(models.Model):
     occupation = models.CharField( max_length=255, null=True, blank=True)
     organization = models.CharField( max_length=255, null=True, blank=True)
     working_location = models.CharField( max_length=255, null=True, blank=True)
-    
 
-
-class ReligionalDetails(models.Model):
+class ReligionalPreferences(models.Model):
     user = models.ForeignKey(User,  on_delete=models.CASCADE, null=True)
     religion = models.CharField(max_length=100)
     caste = models.CharField( max_length=100)
     star = models.CharField( max_length=100)
-
-
-
-
-class Country(models.Model):
-    country_name = models.CharField( max_length=150)
-
-class Cities(models.Model):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    city_name = models.CharField(max_length=150) 

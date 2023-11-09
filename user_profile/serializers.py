@@ -4,7 +4,7 @@ from user_accounts.models import UserProfile
 from rest_framework.serializers import ImageField, ValidationError, ModelSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from .models import UserBasicDetails, ProfessionalDetails
+from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails
 
 
 
@@ -46,7 +46,7 @@ class ProfileSerializer(ModelSerializer):
 class UserDetailsSeriallzer(serializers.ModelSerializer):
     class Meta:
         model = UserBasicDetails
-        fields = ('mother_tongue', 'eating_habit', 'drinking_habit', 'smoking_habit', 'martial_status', 'height', 'body_type', 'physical_status' )
+        fields = ('mother_tongue', 'eating_habit', 'drinking_habit', 'smoking_habit', 'martial_status', 'height', 'body_type', 'physical_status', 'location', 'citizenship' )
 
     def update(self, instance, validated_data):
         # Update the instance with validated_data
@@ -60,15 +60,18 @@ class UserDetailsSeriallzer(serializers.ModelSerializer):
         instance.height = validated_data.get('height', instance.height)
         instance.body_type = validated_data.get('body_type', instance.body_type)
         instance.physical_status = validated_data.get('physical_status', instance.physical_status)
+        instance.location = validated_data.get('location', instance.location)
+        instance.citizenship = validated_data.get('citizenship', instance.citizenship)
 
         # Save the instance after updating
         instance.save()
         return instance
     
 class UserProfessionalDetailsSeriallzer(ModelSerializer):
+    print("creating of profession works::::::::::::::::::::::::::::::::::::::::::::::::")
     class Meta:
         model = ProfessionalDetails
-        field = "__all__"
+        fields = "__all__"
 
     def update(self, instance, validated_data):
         instance.education = validated_data.get('education', instance.education)
@@ -77,5 +80,21 @@ class UserProfessionalDetailsSeriallzer(ModelSerializer):
         instance.income = validated_data.get('income', instance.income)
         instance.occupation = validated_data.get('occupation', instance.occupation)
         instance.organization = validated_data.get('organization', instance.organization)
+        instance.save()
+
+        return instance
+    
+class UserReligionalDetailsSeriallzer(ModelSerializer):
+    print("creating of religious details works::::::::::::::::::::::::::::::::::::::::::::::::")
+    class Meta:
+        model = ReligionalDetails
+        fields = "__all__"
+
+    def update(self, instance, validated_data):
+        instance.religion = validated_data.get('religion', instance.religion)
+        instance.caste = validated_data.get('caste', instance.caste)
+        instance.star = validated_data.get('star', instance.star)
+
+        instance.save()
 
         return instance
