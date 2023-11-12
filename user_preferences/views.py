@@ -138,7 +138,7 @@ def get_professional_preferences(request):
         return Response(data)
     
     except ProfessionalPreferences.DoesNotExist:
-        return Response({'error' : "user didnt added user profile details !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "user didnt added user profile details !"}, status=status.HTTP_200_OK)
 
 
 
@@ -217,7 +217,7 @@ def get_religious_preferences(reqeust):
         return Response(data)
     
     except ReligionalPreferences.DoesNotExist:
-        return Response({'error' : "user didnt added user profile details !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "user didnt added user profile details !"}, status=status.HTTP_200_OK)
     
 def auto_update_religional_preferences(request):
     user = request.user

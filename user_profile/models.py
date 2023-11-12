@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from datetime import timezone, datetime
 
 
 # Create your models here.
@@ -41,6 +42,22 @@ class ReligionalDetails(models.Model):
     star = models.CharField( max_length=100)
 
 
+class UserBlockedList(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocking_user', null=True)
+    blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_user')
+    blocked_time = models.DateTimeField(auto_now_add=True)
+
+
+class ProfileVisitedUsers(models.Model):
+    user = models.ForeignKey(User, related_name='visited_user', on_delete=models.CASCADE, null=True)
+    visited_profile = models.ForeignKey(User, related_name='visited_profile', on_delete=models.CASCADE, null=True)
+    visited_time = models.DateTimeField(auto_now_add=True)
+
+
+class ProfileLikeList(models.Model):
+    user = models.ForeignKey(User, related_name='liked_user', on_delete=models.CASCADE, null=True)
+    liked_profile = models.ForeignKey(User, related_name='liked_profile', on_delete=models.CASCADE)
+    liked_time = models.DateTimeField(auto_now=True)
 
 
 class Country(models.Model):
@@ -49,3 +66,4 @@ class Country(models.Model):
 class Cities(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     city_name = models.CharField(max_length=150) 
+

@@ -9,9 +9,19 @@ from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails
 
 
 class UserSerializer(serializers.ModelSerializer):
+
+    profile_img = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'date_joined')
+        fields = ('id','username', 'email', 'first_name', 'last_name', 'date_joined', 'profile_img')
+
+    def get_profile_img(self, obj):
+        try:
+            data = UserProfile.objects.get(user=obj)
+            return data.profile_img.url
+        except UserProfile.DoesNotExist:
+            return None  
 
 
 

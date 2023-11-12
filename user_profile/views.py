@@ -6,22 +6,19 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer, ProfileSerializer, UserDetailsSeriallzer, UserProfessionalDetailsSeriallzer, UserReligionalDetailsSeriallzer
 from user_accounts.models import UserProfile
-from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails
+from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails, UserBlockedList
 from user_preferences.views import auto_add_basic_preferences, auto_update_professional_preference, auto_update_religional_preferences
-
 import time
 from datetime import datetime, date
-
 from django.shortcuts import get_object_or_404
+
 
 def unique_user_id_generator(request):
     user = request.user
-
     date_joined_str = user.date_joined.strftime("%Y%m%d")[-4:]
     first_name = user.first_name[:3].upper()
     site_name = 'WED'
     current_time = str(time.time())
-
     user_unique_id = f'{site_name}{first_name.upper()}{date_joined_str}T{current_time[:3]}'
     return user_unique_id
 
@@ -31,6 +28,7 @@ def calculate_age_profile(date_of_birth):
     current_date = datetime.now().date()
     age = current_date.year - date_of_birth.year 
     return age
+
 
 def calculate_age_basic_details(date_of_birth):
     current_date = datetime.now().date()
@@ -42,50 +40,71 @@ def calculate_age_basic_details(date_of_birth):
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
     user = request.user
+    try:
+        user_profile = UserProfile.objects.get(user = user)
+        user_profile_data = {
+                'unique_user_id': user_profile.unique_user_id,
+                'profile_img': user_profile.profile_img.url if user_profile.profile_img else '',
+                'phone_number': user_profile.phone_number,
+                'date_of_birth': user_profile.date_of_birth,
+                'gender': user_profile.gender,
+        }
+        data = {
+                'response': 'registered',
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'user_profile': user_profile_data,
+        }
+        return Response(data)
 
-    serializer = UserSerializer(user)
+    except UserProfile.DoesNotExist:
+        return Response(data = {"error": "user profile is not completed ! "}, status= status.HTTP_400_BAD_REQUEST)
 
-    user_profile = get_object_or_404(UserProfile, user=user)
 
-    user_profile_data = {
-        'unique_user_id': user_profile.unique_user_id,
-        'profile_img': user_profile.profile_img.url if user_profile.profile_img else '',
-        'phone_number': user_profile.phone_number,
-        'date_of_birth': user_profile.date_of_birth,
-        'gender': user_profile.gender,
-    }
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_blocked_matches(request):
+    user = request.user
+    try:
+        blocked_users = UserBlockedList.objects.filter(user = user)
+        user_ids = [blocked_user.blocked_user.id for blocked_user in blocked_users]
+        users_data = User.objects.filter(id__in=user_ids)
+        serializer = UserSerializer(users_data, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except UserBlockedList.DoesNotExist:
+        return Response(data={'message': ' no matches are blocked'}, status=status.HTTP_200_OK)
 
-    data = {
-        'response': 'registered',
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'user_profile': user_profile_data,
-    }
 
-    return Response(data)
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def unblock_match(request, match_id):
+    user = request.user
+    try:
+        blocked_user = UserBlockedList.objects.filter(user = user, blocked_user = match_id)
+        blocked_user.delete()
+        return Response(data={'message': 'match profile unblocked successfully !'}, status=status.HTTP_200_OK)
+    except UserBlockedList.DoesNotExist:
+        return Response(data={'message': 'The match profile is not present in the blocked list !'}, status=status.HTTP_200_OK)
+    
 
 
 @api_view(['PATCH'])
 def UpdateUserProfile(request):
-    
     user = request.user
-    print("the user ::::::::::::::::::::::::::::::::::::::::", user)
-
+    
     try:
         profile = UserProfile.objects.get(user=user)
     except UserProfile.DoesNotExist:
         profile = UserProfile.objects.create(user=user)
-    user_unique_id = unique_user_id_generator(request)
-    print("user unique id ::::::::::::::::::::::::::::::::::::::::::::::::::::",user_unique_id)
 
-    print("user data ::::::::::", request.data)
+    user_unique_id = unique_user_id_generator(request)
+
     if 'profile_img' in request.FILES:
         profile.profile_img = request.FILES['profile_img']
 
     serializer = ProfileSerializer(instance = profile, data=request.data, context={'user_unique_id': user_unique_id}, partial=True )
-
     new_username = request.data.get('username', user.username)
     if user.username != new_username and User.objects.filter(username = new_username).exists():
         return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
@@ -95,9 +114,8 @@ def UpdateUserProfile(request):
         return Response({'error' : "email is already exists!"}, status=status.HTTP_400_BAD_REQUEST)
     
     date_of_birth = request.data.get('date_of_birth')
-    print("date of birth ::::::::::::::::::::::::::::::::::::::::::::", date_of_birth)
     user_age = calculate_age_profile(date_of_birth)
-    print("user age ::::::::::::::::::::::::::::::::::::::::::::", user_age)
+
     if user_age < 18 :
         return Response({'error' : "your age must me minimum 18 years!"}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -146,9 +164,9 @@ def get_basic_details(request):
             "citizenship": basic_details.citizenship,
 
         }
-        return Response(data)
+        return Response(data, status=status.HTTP_200_OK)
     except UserBasicDetails.DoesNotExist:
-        return Response({'error' : "user didnt added user basic details !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "user didnt added user basic details !"}, status=status.HTTP_200_OK)
 
 
 
@@ -160,29 +178,22 @@ def update_basic_details(request):
         basic_details = UserBasicDetails.objects.get(user=user)
     except UserBasicDetails.DoesNotExist:
         basic_details = UserBasicDetails.objects.create(user=user)
-
     try:
         user_profile = UserProfile.objects.get(user=user)
     except UserBasicDetails.DoesNotExist:
-        print("date not found::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-
+        pass
     if user_profile:
         date_of_birth = user_profile.date_of_birth
         user_age = calculate_age_basic_details(date_of_birth)
-
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, context={'user_age': user_age}, partial=True)
     else:
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, partial=True)
-
     if serializer.is_valid():
-        print("serializer is valid !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         serializer.save()
-        auto_add_basic_preferences(request)  # Pass the data to the function
-
+        auto_add_basic_preferences(request) 
         data = serializer.data
     else:
         data = serializer.errors
-
     return Response(data)
 
 
@@ -206,7 +217,7 @@ def get_professional_details(request):
         return Response(data)
 
     except ProfessionalDetails.DoesNotExist:
-        return Response({'error' : "user didnt added user professional details !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "user didnt added user professional details !"}, status=status.HTTP_200_OK)
     
 @api_view(['PATCH'])
 def update_professional_data(request):
@@ -248,29 +259,22 @@ def get_religional_details(request):
         return Response(data)
 
     except ReligionalDetails.DoesNotExist:
-        return Response({'error' : "user didnt added user preligional details !"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "user didnt added user preligional details !"}, status=status.HTTP_200_OK)
     
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_religional_data(request):
     user = request.user
-
     try:
         religional_details = ReligionalDetails.objects.get(user = user)
 
     except ReligionalDetails.DoesNotExist:
         religional_details = ReligionalDetails.objects.create(user = user)
-        
-
-    
     serializer = UserReligionalDetailsSeriallzer(instance = religional_details, data = request.data,  partial=True)
-
     if serializer.is_valid():
         serializer.save()
         auto_update_religional_preferences(request)
         data = serializer.data
     else:
         data = serializer.errors
-
-    
     return Response(data)
