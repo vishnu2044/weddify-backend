@@ -4,7 +4,7 @@ from . import models
 from user_accounts.models import UserProfile
 from user_profile.models import UserBasicDetails, ProfessionalDetails, ReligionalDetails, ProfileVisitedUsers, ProfileLikeList
 from datetime import datetime, timezone
-
+from user_preferences.models import BasicPreferences, ProfessionalPreferences, ReligionalPreferences
 
 class UserMatchesSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
@@ -171,7 +171,19 @@ class VisitedMatchesProfiles(serializers.ModelSerializer):
             return None
 
 
+class BasicPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BasicPreferences
+        fields = ('age_from', 'age_to', 'martial_status', 'location')
 
 
+class ProfessionalPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfessionalPreferences
+        fields = ('working_sector', 'occupation')
 
 
+class ReligionalPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReligionalPreferences
+        fields = ('religion', 'caste')

@@ -138,7 +138,7 @@ def UpdateUserProfile(request):
         data['last_name'] = user.last_name
     else:
         data = serializer.errors
-        print("profile updated is not working !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", serializer.errors)
+        return Response(data = {'error': "serilaizer is not valid "}, status=status.HTTP_400_BAD_REQUEST)
     return Response(data)
 
 
@@ -259,7 +259,7 @@ def get_religional_details(request):
         return Response(data)
 
     except ReligionalDetails.DoesNotExist:
-        return Response({'message' : "user didnt added user preligional details !"}, status=status.HTTP_200_OK)
+        return Response({'error' : "user didnt added user preligional details !"}, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

@@ -13,5 +13,7 @@ urlpatterns = [
     path('like_match/<int:match_id>/', views.like_match, name='like_match'),
     path('unlike_match/<int:match_id>/', views.unlike_match, name='unlike_match'),
     path('check_profile_completed/', views.check_profile_completed, name='check_profile_completed'),
+    path('get_filter_details/', views.get_filter_details, name='get_filter_details'),
+    path('filtering_matches/', views.filtering_matches, name='filtering_matches'),
 
 ]

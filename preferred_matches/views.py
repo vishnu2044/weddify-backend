@@ -4,11 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from .serializers import UserMatchesSerializer, UserSerializer, ProfessionalDetailsSerializer, ReligionalDetailsSerializer, UserBasicDetailsSerializer, UserProfileSerializer, UserVisitedProfiles, VisitedMatchesProfiles
+from .serializers import BasicPreferenceSerializer, ProfessionalPreferenceSerializer, ReligionalPreferenceSerializer
 from rest_framework import status
 from user_profile.models import UserBasicDetails, ProfessionalDetails, ReligionalDetails, UserBlockedList, ProfileVisitedUsers, ProfileLikeList
 from user_preferences.models import BasicPreferences, ReligionalPreferences, ProfessionalPreferences
 from user_accounts.models import UserProfile
 from datetime import datetime, timedelta
+from django.http import QueryDict
 # Create your views here.
 
 
@@ -28,8 +30,7 @@ def get_matches(request):
         print(user_list)
         return user_list
     except BasicPreferences.DoesNotExist:
-        return None
-
+        return Response(data = {'error': "basic preferences didnt added "}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -64,13 +65,16 @@ def get_all_matches(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def new_matches(request):
-    current_user = request.user
-    user_list = get_matches(request) 
-    current_time = datetime.now()
-    twelve_hours_ago = current_time - timedelta(days=4)
-    user_list = user_list.filter(date_joined__gte=twelve_hours_ago)
-    serializer = UserMatchesSerializer(user_list, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    try:
+        current_user = request.user
+        user_list = get_matches(request) 
+        current_time = datetime.now()
+        twelve_hours_ago = current_time - timedelta(days=4)
+        user_list = user_list.filter(date_joined__gte=twelve_hours_ago)
+        serializer = UserMatchesSerializer(user_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except :
+        return Response(data = {})
 
 
 @api_view(['GET'])
@@ -138,7 +142,7 @@ def block_user(request, block_user):
         excisting_user = UserBlockedList.objects.filter(user=user, blocked_user=blocked_user)
         if not excisting_user:
             UserBlockedList.objects.create(user=user, blocked_user=blocked_user)
-        return Response(data={'message': 'success'}, status=status.HTTP_200_OK)
+        return Response(data={'message': 'user blocked successfully!'}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
         print("didnt get the profile!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response(data={'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
@@ -231,51 +235,100 @@ def check_profile_completed(request):
     try:
         userprofile = UserProfile.objects.get(user = current_user)
         if userprofile.unique_user_id == None:
-            print("profile is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("user profile details is not completed!")
     except UserProfile.DoesNotExist:
-        print("UserProfile is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your User profile !"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         UserBasicDetails.objects.get(user = current_user)
-        print('basic details completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except UserBasicDetails.DoesNotExist:
-        print("UserBasicDetails is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your basic details !"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         ProfessionalDetails.objects.get(user = current_user)
-        print('basic details completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except ProfessionalDetails.DoesNotExist:
-        print("ProfessionalDetails is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your professional details !"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         ReligionalDetails.objects.get(user = current_user)
-        print('basic details completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except ReligionalDetails.DoesNotExist:
-        print("ReligionalDetails is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your religional details !"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         BasicPreferences.objects.get(user = current_user)
-        print('basic preferences completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except BasicPreferences.DoesNotExist:
-        print("basic preferences is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete yourbasic preferences !"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         ProfessionalPreferences.objects.get(user = current_user)
-        print('professional preferences completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except ProfessionalPreferences.DoesNotExist:
-        print("basic preferences is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your professional preferences !"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
         ReligionalPreferences.objects.get(user = current_user)
-        print('professional preferences completed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     except ReligionalPreferences.DoesNotExist:
-        print("professional preferences is not completed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'error': "please complete your religional preferences !"}, status=status.HTTP_400_BAD_REQUEST)
     
     return Response(data = {"message" : "success"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_filter_details(request):
+    current_user = request.user
+    try:
+        data = {}
+        # Basic Preferences
+        try:
+            basic_preferences = BasicPreferences.objects.get(user=current_user)
+            basic_prefernce_serializer = BasicPreferenceSerializer(instance=basic_preferences)
+            data['basic_preference'] = basic_prefernce_serializer.data
+        except BasicPreferences.DoesNotExist:
+            data['basic_preference'] = None
+
+        # Professional Preferences
+        try:
+            professional_preferences = ProfessionalPreferences.objects.get(user=current_user)
+            professional_prefernce_serializer = ProfessionalPreferenceSerializer(instance=professional_preferences)
+            data['professional_preference'] = professional_prefernce_serializer.data
+        except ProfessionalPreferences.DoesNotExist:
+            data['professional_preference'] = None
+
+        # Religional Preferences
+        try:
+            religional_preferences = ReligionalPreferences.objects.get(user=current_user)
+            religional_prefernce_serializer = ReligionalPreferenceSerializer(instance=religional_preferences)
+            data['religional_preference'] = religional_prefernce_serializer.data
+
+        except ReligionalPreferences.DoesNotExist:
+            data['religional_preference'] = None
+        
+        return Response(data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response(data={"error": "preference didn't get"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def filtering_matches(request):
+    current_user = request.user
+    matches = get_matches(request)
+
+    age_from_data = request.data.get('age_from')
+    age_to_data = request.data.get('age_to')
+    martial_status_data = request.data.get('martial_status')
+    location_data = request.data.get('location')
+    working_sector_data = request.data.get('working_sector')
+    religion_data = request.data.get('religion')
+    caste_data = request.data.get('caste')
+
+
+    filtered_match = matches.filter(userbasicdetails__age__gte= age_from_data, userbasicdetails__age__lte = age_to_data)
+    filtered_match = filtered_match.filter(userbasicdetails__martial_status = martial_status_data)
+    filtered_match = filtered_match.filter(userbasicdetails__location = location_data)
+    filtered_match = filtered_match.filter(professionaldetails__working_sector = working_sector_data)
+    filtered_match = filtered_match.filter(religionaldetails_religion = religion_data)
+    filtered_match = filtered_match.filter(religionaldetails_caste = caste_data)
+
+    return Response(data={"message": "success!"}, status=status.HTTP_200_OK)
