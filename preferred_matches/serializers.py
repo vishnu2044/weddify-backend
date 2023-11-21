@@ -6,6 +6,7 @@ from user_profile.models import UserBasicDetails, ProfessionalDetails, Religiona
 from datetime import datetime, timezone
 from user_preferences.models import BasicPreferences, ProfessionalPreferences, ReligionalPreferences
 
+
 class UserMatchesSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     like = serializers.SerializerMethodField()
@@ -168,6 +169,48 @@ class VisitedMatchesProfiles(serializers.ModelSerializer):
                 return "Just now"
 
         except ProfileVisitedUsers.DoesNotExist:
+            return None
+
+class LikedMatchesProfiles(serializers.ModelSerializer):
+    profile_img = serializers.SerializerMethodField()
+    liked_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'profile_img', 'liked_time', 'id')
+    
+    def get_profile_img(self, obj):
+        try:
+            data = UserProfile.objects.get(user=obj)
+            return data.profile_img.url
+        except UserProfile.DoesNotExist:
+            return None  
+
+    def get_liked_time(self, obj):
+        current_user = self.context['request'].user
+
+        try:
+            data = ProfileLikeList.objects.get(user=obj, liked_profile=current_user)
+            activity_time = data.liked_time
+
+            # Calculate the time difference
+            current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
+            time_difference = current_time - activity_time
+            days = time_difference.days
+            hours, remainder = divmod(time_difference.seconds, 3600)
+            minutes, _ = divmod(remainder, 60)
+
+            # Format the result
+            if days > 0:
+                return f"{days} {'day' if days == 1 else 'days'} ago"
+            elif hours > 0:
+                return f"{hours} {'hour' if hours == 1 else 'hours'} ago"
+            elif minutes > 0:
+                return f"{minutes} {'minute' if minutes == 1 else 'minutes'} ago"
+            else:
+                return "Just now"
+
+        except ProfileLikeList.DoesNotExist:
             return None
 
 

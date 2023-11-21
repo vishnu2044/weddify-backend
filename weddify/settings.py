@@ -45,10 +45,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     "corsheaders",
 
+
     'user_accounts.apps.UserAccountsConfig',
     'user_profile.apps.UserProfileConfig',
     'user_preferences.apps.UserPreferencesConfig',
     'preferred_matches.apps.PreferredMatchesConfig',
+    'admin_panel.apps.AdminPanelConfig',
 
 ]
 
@@ -136,6 +138,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'weddify.wsgi.application'
+
+ASGI_APPLICATION = 'weddify.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 
 # Database

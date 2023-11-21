@@ -28,6 +28,7 @@ urlpatterns = [
     path('userprofile/', include('user_profile.urls')),
     path('userpreferences/', include('user_preferences.urls')),
     path('preferedmatches/', include('preferred_matches.urls')),
+    path('adminpanel/', include('admin_panel.urls')),
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

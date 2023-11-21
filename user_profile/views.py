@@ -180,7 +180,7 @@ def update_basic_details(request):
         basic_details = UserBasicDetails.objects.create(user=user)
     try:
         user_profile = UserProfile.objects.get(user=user)
-    except UserBasicDetails.DoesNotExist:
+    except UserProfile.DoesNotExist:
         pass
     if user_profile:
         date_of_birth = user_profile.date_of_birth

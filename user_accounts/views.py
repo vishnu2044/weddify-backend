@@ -47,6 +47,7 @@ class Register(APIView):
             data = serializer.errors
         return Response(data , status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET'])
 def getRouts(request):
     routes = [
