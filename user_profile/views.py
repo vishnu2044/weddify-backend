@@ -181,10 +181,13 @@ def update_basic_details(request):
     try:
         user_profile = UserProfile.objects.get(user=user)
     except UserProfile.DoesNotExist:
-        pass
+        return Response(data={'error' : 'complete user profile first'}, status= status.HTTP_400_BAD_REQUEST)
     if user_profile:
         date_of_birth = user_profile.date_of_birth
         user_age = calculate_age_basic_details(date_of_birth)
+        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, context={'user_age': user_age}, partial=True)
     else:
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, partial=True)

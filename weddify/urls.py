@@ -29,6 +29,9 @@ urlpatterns = [
     path('userpreferences/', include('user_preferences.urls')),
     path('preferedmatches/', include('preferred_matches.urls')),
     path('adminpanel/', include('admin_panel.urls')),
+    path('chat_app/', include('chat_app.urls')),
+
+    
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

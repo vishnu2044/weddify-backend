@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
-from datetime import timedelta
 import os
+from datetime import timedelta
+from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,10 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-sk*q!0tl48obovp$)#8ans7u7t0as09_@-4115(+5np-^et$2&'
+# SECRET_KEY = 'django-insecure-sk*q!0tl48obovp$)#8ans7u7t0as09_@-4115(+5np-^et$2&'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+DEBUG = config('DEBUG', cast=bool, default = True)
 
 ALLOWED_HOSTS = []
 
@@ -33,6 +36,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,16 +47,19 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-
     'rest_framework_simplejwt.token_blacklist',
+
     "corsheaders",
 
-
+    
     'user_accounts.apps.UserAccountsConfig',
     'user_profile.apps.UserProfileConfig',
     'user_preferences.apps.UserPreferencesConfig',
     'preferred_matches.apps.PreferredMatchesConfig',
     'admin_panel.apps.AdminPanelConfig',
+    'chat_app.apps.ChatAppConfig',
+
+    'channels',
 
 ]
 
@@ -58,7 +67,6 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
     
@@ -137,15 +145,23 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'weddify.wsgi.application'
+# WSGI_APPLICATION = 'weddify.wsgi.application'
 
 ASGI_APPLICATION = 'weddify.asgi.application'
 
+
+
+
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': "channels.layers.InMemoryChannelLayer"
-    }
+    "default": {
+        "BACKEND": config("CHANNEL_LAYERS_BACKEND", default="channels_redis.core.RedisChannelLayer"),
+        "CONFIG": {
+            "hosts": [(config('REDIS_HOST', default='localhost'), config('REDIS_PORT', default=6379))],
+        },
+    },
 }
+
+
 
 
 # Database
@@ -161,6 +177,16 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",  # Use the correct address and port for your Redis server
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 
 # Password validation
