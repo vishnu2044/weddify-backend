@@ -7,7 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from .serializer import UserSerialzer
+from .serializer import UserSerialzer, PremiumPlanSerilalizer
 from django.contrib.auth.models import AnonymousUser
 from .models import PremiumPlans
 
@@ -173,17 +173,37 @@ def user_block_management(request, user):
 def edit_premium_plans(request):
     user = request.user
     if user is not None and user.is_superuser:
-        try:
-            premium = PremiumPlans.objects.latest('updated_time')
-        except PremiumPlans.DoesNotExist:
-            premium = PremiumPlans.objects.create()
-        
-        monthly_price_data = request.data.get('monthly_price')
-        yearly_price_data = request.data.get('yearly_price')
-        premium.monthly_price = monthly_price_data
-        premium.yearly_price = yearly_price_data
-        premium.save()
-        return Response({'success': 'premium plans updated successfully!!'}, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            try:
+                premium = PremiumPlans.objects.latest('updated_time')
+            except PremiumPlans.DoesNotExist:
+                premium = PremiumPlans.objects.create()
+            
+            monthly_price_data = request.data.get('monthly_price')
+            yearly_price_data = request.data.get('yearly_price')
+            premium.monthly_price = monthly_price_data
+            premium.yearly_price = yearly_price_data
+            premium.save()
+            return Response({'success': 'premium plans updated successfully!!'}, status=status.HTTP_200_OK)
     else:
         return Response(data = {"error": "user is not authenticated!!"}, status=status.HTTP_401_UNAUTHORIZED)
 
+
+@api_view(['get'])
+@permission_classes([IsAuthenticated])
+def get_premium_plan_details(request):
+    user = request.user
+    if user:
+        try:
+            plan_details = PremiumPlans.objects.latest('updated_time')
+        except PremiumPlans.DoesNotExist:
+            plan_details = PremiumPlans.objects.create()
+        yearly_plan_month_rate = plan_details.yearly_price /12
+        serializer = PremiumPlanSerilalizer(plan_details)
+        serializer_data = serializer.data
+        serializer_data['yearly_plan_month_rate'] = yearly_plan_month_rate
+        print("premium plans:::::::::::::::::", serializer.data)
+        return Response(data = serializer_data, status=status.HTTP_200_OK)
+    
+    else:
+        return Response(data = { 'error' : "user is not authenticated!" }, status=status.HTTP_401_UNAUTHORIZED)

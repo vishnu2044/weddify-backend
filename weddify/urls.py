@@ -30,6 +30,7 @@ urlpatterns = [
     path('preferedmatches/', include('preferred_matches.urls')),
     path('adminpanel/', include('admin_panel.urls')),
     path('chat_app/', include('chat_app.urls')),
+    path('create-checkout-session/', include('stripe_payment.urls')),
 
     
     

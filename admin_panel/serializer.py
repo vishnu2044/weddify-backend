@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from user_accounts.models import UserProfile
+from .models import PremiumPlans
+
 
 class UserSerialzer(serializers.ModelSerializer):
     gender = serializers.SerializerMethodField()
@@ -34,4 +36,10 @@ class UserSerialzer(serializers.ModelSerializer):
                 return None
         except UserProfile.DoesNotExist:
             return None   
+        
+class PremiumPlanSerilalizer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PremiumPlans
+        fields = '__all__'
         

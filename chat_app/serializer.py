@@ -17,11 +17,9 @@ class ProfileSerializer(ModelSerializer):
         try:
             data = UserProfile.objects.get(user=obj)
             return data.profile_img.url
+        
         except UserProfile.DoesNotExist:
             return None
-
-
-
 
 
 class MessageSerializer(ModelSerializer):
@@ -75,8 +73,13 @@ class ChatListSerializer(serializers.ModelSerializer):
         
         
     def get_unread(self, obj):
-        user = self.context.get('user_id')
-        unread_count = ChatMessage.objects.filter(reciever=int(user), sender__username=obj, is_read=False).count()
+        user_id = self.context.get('user_id')
+        user = User.objects.get(pk=user_id)
+        username = user.username
+        unread_count = ChatMessage.objects.filter(reciever__username=obj, sender__username=username, is_read=False).count()
+        print(unread_count)
+        print(user,"  reciever >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(obj,"sender  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")     
         return unread_count
         
 

@@ -14,4 +14,12 @@ class UserProfile(models.Model):
     phone_number = models.CharField(max_length=12, blank = True, null = True)
     date_of_birth = models.DateField(blank=True, null=True)
     gender = models.CharField( max_length=50, blank=True, null=True)
+    is_premium_user = models.BooleanField(default=False)
+
+class PremiumVersion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    plan_name = models.CharField(max_length=150, null=True, blank=True)
+    amount_paid = models.CharField( max_length=150, null=True, blank=True)
+    expairy_date = models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
+
     

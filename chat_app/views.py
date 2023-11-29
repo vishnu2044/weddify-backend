@@ -4,22 +4,39 @@ from .models import ChatMessage
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
 
 class PrevieousMessagesView(generics.ListAPIView):
     serializer_class = MessageSerializer
 
     def get_queryset(self):
-        user1 = int(self.kwargs['user1'])
-        user2 = int(self.kwargs['user2'])
+        user2 = int(self.kwargs['user1'])
+        user1 = int(self.kwargs['user2'])
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print("get query set works while user1 ::::::::", user1, "user 2", user2)
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        
 
         thread_suffix = f"{user1}_{user2}" if user1 > user2 else f"{user2}_{user1}"
         thread_name = 'chat_'+thread_suffix
-        queryset = ChatMessage.objects.filter(
-            thread_name=thread_name
-        )
+        queryset = ChatMessage.objects.filter(thread_name = thread_name).exclude(message__isnull=True)
+        
+        if len(queryset) > 0:
+            return queryset
+        else:
+            sender = get_object_or_404(User, pk=user1)
+            receiver = get_object_or_404(User, pk=user2)
+            
+            chat_message = ChatMessage.objects.create(sender = sender, reciever = receiver, thread_name = thread_name, is_read=True )
+            queryset = ChatMessage.objects.filter(thread_name=thread_name)
 
-        return queryset
+            return queryset
+
     
 
 class GetUserDetails(APIView):
@@ -58,10 +75,18 @@ class ChatListView(generics.ListAPIView):
 class UpdateMessageStatus(APIView):
     def post(self, reqeust):
         try:
-            user_id = reqeust.data.get('user_id') 
-            sender_id  =reqeust.data.get('sender_id')
+            user_id    = reqeust.data.get('sender_id')
+            sender_id  = reqeust.data.get('user_id') 
+            
 
             t = ChatMessage.objects.filter(sender = sender_id, reciever = user_id, is_read = False)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            print(len(t))
+            print("user id", user_id)
+            print("sender_id ", sender_id)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             t.update(is_read = True)
             print("messages updated successfully !!!!!!!!!!!!!!!!!!!!!")
             return Response(data={'message': 'success'}, status= status.HTTP_200_OK)
