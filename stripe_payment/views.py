@@ -5,9 +5,14 @@ from rest_framework.response import Response
 from django.shortcuts import redirect
 from rest_framework import status
 from user_accounts.models import UserProfile, PremiumVersion
-from rest_framework.permissions import IsAuthenticated
+
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from dateutil.relativedelta import relativedelta
+from django.db import transaction
+from django.utils import timezone
 
 
 
@@ -22,18 +27,9 @@ class StripeCheckOutView(APIView):
         data = request.data
         amount = data['total_amount']
         caption = data['premium_type']
-        user_id = data ['user_id']
+        user_id = data ['user_id']  
         plan_type = data['type']
-        duration = data['duration']
-
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(data)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-
-
+        duration = data['duration'] 
         try:
             print('asdfgh')
             checkout_session = stripe.checkout.Session.create(
@@ -50,9 +46,10 @@ class StripeCheckOutView(APIView):
                 }],
                 payment_method_types=['card'],
                 mode='payment',
-                success_url=settings.SITE_URL + '/?success=true&session_id={CHECKOUT_SESSION_ID}',
+                success_url=settings.SITE_URL + f'/?success=true&amount={amount}&plan_type={plan_type}&duration={duration}&user_id={user_id}',
                 cancel_url=settings.SITE_URL + '/?canceled=true'
             )
+
                 
             return Response(checkout_session.url, status=status.HTTP_200_OK)
                 
@@ -63,51 +60,38 @@ class StripeCheckOutView(APIView):
             )
 
 
-def setup_User_premium_details(request, data):
-    user = request.user
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print('data', data)
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+@api_view(['POST'])
+def update_premium_status(request):
+    print("It is working")
+    user_id = request.POST.get("user_id")
+    total_amount = request.POST.get("totalAmount")
+    plan_type = request.POST.get("planType")
+    duration = request.POST.get("duration")
+
+    user = User.objects.get(id=user_id)
+
     try:
-        user_profile = UserProfile.objects.get(user = user)
-        return user_profile
+        with transaction.atomic():
+            user_profile = UserProfile.objects.get(user=user)
+            user_profile.is_premium_user = True
+            user_profile.save()
+            current_time = timezone.now()
+            if plan_type == 'month':
+                expairy_date = current_time + relativedelta(months=int(duration))
+            else:
+                expairy_date = current_time + relativedelta(years=int(duration))
+            try:
+                premium = PremiumVersion.objects.get(user=user)
+                premium.amount_paid = int(total_amount)
+                premium.save()
+            except PremiumVersion.DoesNotExist:
+                PremiumVersion.objects.create(
+                    user=user,
+                    expiry_date=expairy_date,
+                    plan_name=plan_type,
+                    amount_paid=int(total_amount)
+                )
+            return Response({'message': 'success'}, status=status.HTTP_200_OK)
     except UserProfile.DoesNotExist:
-        return Response({"error" : 'user profile is not created yet '}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": 'user profile is not created yet'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-            # if checkout_session:
-            #     try:
-            #         user = User.objects.get(id = user_id)
-            #         try:
-            #             user_profile = UserProfile.objects.get(user = user)
-            #             user_profile.is_premium_user = True
-            #             user_profile.save() 
-
-            #             if plan_type == 'month':
-            #                 days = duration * 30
-            #             else:
-            #                 days = duration * 365
-            #             current_date = datetime.now()
-            #             print(current_date,"current date >>>>>>>>>>>>>")
-            #             print(timedelta(days = days),"total days >>>>>>>>>>>>>")
-
-            #             expairy_date = current_date + timedelta(days = days)
-            #             try:
-            #                 premium = PremiumVersion.objects.get(user=user)
-            #             except PremiumVersion.DoesNotExist:
-            #                 premium = PremiumVersion.objects.create(
-            #                     user=user, 
-            #                     expairy_date=expairy_date, 
-            #                     plan_name=plan_type,
-            #                     amount_paid = amount
-            #                     )
-            #         except UserProfile.DoesNotExist:
-            #             return Response({"error" : 'user profile is not created yet'}, status=status.HTTP_400_BAD_REQUEST)
-
-            #     except User.DoesNotExist:
-            #         return Response({"error" : 'user is not valid'}, status=status.HTTP_401_UNAUTHORIZED)

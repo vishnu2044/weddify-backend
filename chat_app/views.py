@@ -61,6 +61,10 @@ class ChatListView(generics.ListAPIView):
         for entry in distinct_receivers:
             distinct_usernames.add(entry['reciever__username'])
 
+        print("the chat list>>>>>>>>>>>>>>>>")
+        print("the chat list>>>>>>>>>>>>>>>>")
+        print("the chat list>>>>>>>>>>>>>>>>", distinct_senders)
+        print("the chat list>>>>>>>>>>>>>>>>")
         return distinct_usernames
         
     def get_serializer_context(self):
@@ -77,8 +81,6 @@ class UpdateMessageStatus(APIView):
         try:
             user_id    = reqeust.data.get('sender_id')
             sender_id  = reqeust.data.get('user_id') 
-            
-
             t = ChatMessage.objects.filter(sender = sender_id, reciever = user_id, is_read = False)
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")

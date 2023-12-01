@@ -100,7 +100,10 @@ class UserVisitedProfiles(serializers.ModelSerializer):
     def get_profile_img(self, obj):
         try:
             data = UserProfile.objects.get(user=obj)
-            return data.profile_img.url
+            if data.profile_img:
+                return data.profile_img.url
+            else:
+                return None
         except UserProfile.DoesNotExist:
             return None  
 
@@ -143,7 +146,10 @@ class VisitedMatchesProfiles(serializers.ModelSerializer):
     def get_profile_img(self, obj):
         try:
             data = UserProfile.objects.get(user=obj)
-            return data.profile_img.url
+            if data.profile_img:
+                return data.profile_img.url
+            else:
+                return None
         except UserProfile.DoesNotExist:
             return None  
 
@@ -154,14 +160,14 @@ class VisitedMatchesProfiles(serializers.ModelSerializer):
             data = ProfileVisitedUsers.objects.get(user=obj, visited_profile=current_user)
             activity_time = data.visited_time
 
-            # Calculate the time difference
+            
             current_time = datetime.utcnow().replace(tzinfo=timezone.utc)
             time_difference = current_time - activity_time
             days = time_difference.days
             hours, remainder = divmod(time_difference.seconds, 3600)
             minutes, _ = divmod(remainder, 60)
 
-            # Format the result
+            
             if days > 0:
                 return f"{days} {'day' if days == 1 else 'days'} ago"
             elif hours > 0:

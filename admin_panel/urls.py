@@ -10,5 +10,5 @@ urlpatterns = [
     path('user_block_management/<int:user>/', views.user_block_management, name='user_block_management'),
     path('edit-premium-plans/', views.edit_premium_plans, name='edit_premium_plans'),
     path('get_premium_plan_details/', views.get_premium_plan_details, name='get_premium_plan_details'),
-
+    path('get_premium_user_details/', views.get_premium_user_details, name='get_premium_user_details'),
 ]

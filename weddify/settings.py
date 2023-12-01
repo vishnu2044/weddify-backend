@@ -243,4 +243,4 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 STRIPE_SECRET_KEY = 'sk_test_51OHJjSSAkBwZiHFcjZiOg3qJ8kyomYfMrt53kFPGH1iFI3rYXXTnK5xDS9SdYQOm7mQCLpi6zw36elZ8ypmorHvi0026UEty9R'
-SITE_URL = 'http://localhost:14713/home/premiumplans'
+SITE_URL = 'http://localhost:4745/home/payment-confirmation-page'

@@ -19,7 +19,6 @@ class UserProfile(models.Model):
 class PremiumVersion(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     plan_name = models.CharField(max_length=150, null=True, blank=True)
-    amount_paid = models.CharField( max_length=150, null=True, blank=True)
-    expairy_date = models.DateField(auto_now=False, auto_now_add=False, null=True, blank=True)
-
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    expiry_date = models.DateTimeField(null=True, blank=True)
     
