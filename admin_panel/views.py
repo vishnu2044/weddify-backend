@@ -67,7 +67,6 @@ def check_user_is_admin(request):
 @permission_classes([IsAuthenticated])
 def get_admin_panel_data(request):
     current_user = request.user
-
     if current_user.is_superuser:
         all_users = User.objects.all().exclude(is_superuser=True).order_by('-date_joined')
         total_users = User.objects.all().exclude(is_superuser=True).count()

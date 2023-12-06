@@ -122,7 +122,6 @@ def UpdateUserProfile(request):
     
     
     if serializer.is_valid():
-        print("serializer is validddd !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         serializer.save()
         data = serializer.data
         user.username = request.data.get('username', user.username)
@@ -184,11 +183,11 @@ def update_basic_details(request):
         return Response(data={'error' : 'complete user profile first'}, status= status.HTTP_400_BAD_REQUEST)
     if user_profile:
         date_of_birth = user_profile.date_of_birth
-        user_age = calculate_age_basic_details(date_of_birth)
-        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(user_age , ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, context={'user_age': user_age}, partial=True)
+        if date_of_birth :
+            user_age = calculate_age_basic_details(date_of_birth)
+            serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, context={'user_age': user_age}, partial=True)
+        else:
+            return Response(data={'error' : 'Update your user profile first!'}, status= status.HTTP_400_BAD_REQUEST)
     else:
         serializer = UserDetailsSeriallzer(instance=basic_details, data=request.data, partial=True)
     if serializer.is_valid():

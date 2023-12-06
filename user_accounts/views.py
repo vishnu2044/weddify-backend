@@ -74,6 +74,7 @@ class Register(APIView):
                 data['response'] = 'registered'
                 data['username'] = account.username
                 data['email'] = account.email
+                return Response(data, status=status.HTTP_200_OK)
             else:
                 data = serializer.errors
             return Response(data , status=status.HTTP_400_BAD_REQUEST)

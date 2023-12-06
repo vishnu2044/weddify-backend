@@ -13,15 +13,23 @@ class UserMatchesSerializer(serializers.ModelSerializer):
     profile_img = serializers.SerializerMethodField()
     occupation = serializers.SerializerMethodField()
     gender = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'age', 'profile_img' , 'occupation', 'gender', 'like')
+        fields = ('id', 'first_name', 'last_name', 'age', 'profile_img' , 'occupation', 'gender', 'like', 'location')
     
     def get_age(self, obj):
         try:
             data = UserBasicDetails.objects.get(user = obj)
             return data.age
+        except UserBasicDetails.DoesNotExist:
+            return None 
+        
+    def get_location(self, obj):
+        try:
+            data = UserBasicDetails.objects.get(user = obj)
+            return data.location
         except UserBasicDetails.DoesNotExist:
             return None 
     

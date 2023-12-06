@@ -29,9 +29,6 @@ def get_matches(request):
         basic_preferences = BasicPreferences.objects.get(user=user)
 
         user_list = userlist.filter(userprofile__gender=basic_preferences.gender)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",user_list)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         return user_list
     except BasicPreferences.DoesNotExist:
         return Response(data = {'error': "basic preferences didnt added "}, status=status.HTTP_400_BAD_REQUEST)
@@ -62,11 +59,30 @@ def get_all_matches(request):
         return Response({'error' : "didnt get the user basic preferences !"}, status=status.HTTP_400_BAD_REQUEST)
     
     serializer = UserMatchesSerializer(user_list, many=True, context={'request': request})
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>> serialized data >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",serializer.data)
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_matches_by_preference(request):
+
+    user = request.user
+    if user : 
+        user_list = get_matches(request)
+        try:
+            basic_preference = BasicPreferences.objects.get(user = user)
+            user_list = user_list.filter(userbasicdetails__location = basic_preference.location)
+            user_list = user_list.filter(userbasicdetails__age__gte = basic_preference.age_from, userbasicdetails__age__lte = basic_preference.age_to)
+            serializer = UserMatchesSerializer(user_list, many=True, context = {'request' : request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except BasicPreferences.DoesNotExist:
+            return Response({"error" : 'Basic preference didnt added'}, status= status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({"error" : 'user not authenticated'}, status= status.HTTP_401_UNAUTHORIZED)
+
 
 
 @api_view(['GET'])
@@ -76,13 +92,34 @@ def new_matches(request):
         current_user = request.user
         user_list = get_matches(request) 
         current_time = datetime.now()
-        twelve_hours_ago = current_time - timedelta(days=15)
+        twelve_hours_ago = current_time - timedelta(days=40)
         user_list = user_list.filter(date_joined__gte=twelve_hours_ago)
-        serializer = UserMatchesSerializer(user_list, many=True)
+        serializer = UserMatchesSerializer(user_list, many=True, context = {'request' : request})
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
     except :
         return Response(data = {})
 
+def get_like(request, id):
+    try:
+        data = ProfileLikeList.objects.get(user=request.user, liked_profile=id)
+        if data:
+            return True
+        else:
+            return False
+    except ProfileLikeList.DoesNotExist:
+        return False
+
+
+def check_blocked(request, id):
+    try:
+        data = UserBlockedList.objects.get(user = request.user, blocked_user = id)
+        if data:
+            return True
+        else:
+            return False
+    except UserBlockedList.DoesNotExist:
+        return False
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -133,6 +170,8 @@ def get_match_profile(request, match_id):
         except ReligionalDetails.DoesNotExist:
             data['user_religional_details'] = None
        
+        data['like'] = get_like(request, id = match_id)
+        data['block'] = check_blocked(request, id = match_id)
         return Response(data, status=status.HTTP_200_OK)
 
     except User.DoesNotExist:
@@ -151,7 +190,6 @@ def block_user(request, block_user):
             UserBlockedList.objects.create(user=user, blocked_user=blocked_user)
         return Response(data={'message': 'user blocked successfully!'}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
-        print("didnt get the profile!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response(data={'message': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -201,13 +239,10 @@ def viewed_profiles(request):
 
         # Serialize the list of visited profiles
         visited_profile_ids = [visited_profile.visited_profile.id for visited_profile in visited_profiles]
-
         visited_profile_data = User.objects.filter(id__in = visited_profile_ids)
-        print("users data ::::::::::::::::::::::::::::::::::::::::::::::::::::", visited_profile_data)
         serializer = UserVisitedProfiles(visited_profile_data, many=True,  context={'request': request})
-        print('seralized data :::::::::::::::::::::::::::::::', serializer.data)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     except ProfileVisitedUsers.DoesNotExist:
         return Response({'error': "User didn't visit any profiles!"}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -220,11 +255,8 @@ def matches_viewed_yours(request):
     try:
         visited_matches = ProfileVisitedUsers.objects.filter(visited_profile = current_user)
         visited_match_ids = [visited_match.user.id for visited_match in visited_matches]
-        count = 0
-        for x in visited_match_ids:
-            print("visited profiles id ::::::::", x)
-            count +=1
-        visited_matches_data = User.objects.filter(id__in = visited_match_ids)
+        visited_matches_data = User.objects.filter(id__in = visited_match_ids).exclude(is_superuser = True)
+        count = User.objects.filter(id__in = visited_match_ids).exclude(is_superuser = True).count()
 
         serialzer = VisitedMatchesProfiles(visited_matches_data, many=True, context={'request': request})
         data = serialzer.data
@@ -254,7 +286,6 @@ def liked_you_matches(request):
         return Response(response_data, status=status.HTTP_200_OK)
 
     else:
-        print("<<<<<<<<<<<<<<<<<<<<<< not matches liked your profile >>>>>>>>>>>>>>>>>>>>>>>")
         return Response({'error' : 'no matches liked your profile '}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -266,7 +297,7 @@ def check_profile_completed(request):
     try:
         userprofile = UserProfile.objects.get(user = current_user)
         if userprofile.unique_user_id == None:
-            print("user profile details is not completed!")
+            pass
     except UserProfile.DoesNotExist:
         return Response({'error': "please complete your User profile !"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -353,7 +384,6 @@ def filtering_matches(request):
     working_sector_data = request.data.get('working_sector')
     religion_data = request.data.get('religion')
     caste_data = request.data.get('caste')
-    print(age_from_data, age_to_data,"martial>>>>>>>",martial_status_data, location_data, working_sector_data, religion_data, caste_data, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
 
     filtered_match = matches.filter(userbasicdetails__age__gte= age_from_data, userbasicdetails__age__lte = age_to_data)
@@ -384,7 +414,6 @@ def search_matches(request):
     user = request.user
     user_list = get_matches(request)
     search_text = request.data.get('search_match')
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", search_text)
     try:
         basic_preferences = BasicPreferences.objects.get(user = user)
         user_list = user_list.filter(userbasicdetails__age__gte = basic_preferences.age_from, userbasicdetails__age__lte = basic_preferences.age_to  )

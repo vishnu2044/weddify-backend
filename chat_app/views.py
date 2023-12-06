@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from user_accounts.models import UserProfile
 
 
 class PrevieousMessagesView(generics.ListAPIView):
@@ -82,16 +84,31 @@ class UpdateMessageStatus(APIView):
             user_id    = reqeust.data.get('sender_id')
             sender_id  = reqeust.data.get('user_id') 
             t = ChatMessage.objects.filter(sender = sender_id, reciever = user_id, is_read = False)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             print(len(t))
-            print("user id", user_id)
-            print("sender_id ", sender_id)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             t.update(is_read = True)
             print("messages updated successfully !!!!!!!!!!!!!!!!!!!!!")
             return Response(data={'message': 'success'}, status= status.HTTP_200_OK)
         
         except :
             return Response(status= status.HTTP_400_BAD_REQUEST)
+        
+
+@api_view(['GET'])
+def check_user_is_premium(request):
+
+    user = request.user
+    if user.is_superuser:
+        return Response({'success': "user admin"}, status=status.HTTP_200_OK)
+    elif user:
+        try:
+            user_profile = UserProfile.objects.get(user = user, is_premium_user = True)
+            if user_profile:
+                return Response({'success': "user is premium user"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'user is not hav premium membership'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'user is not hav premium membership'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'error': 'user is not authorized'}, status=status.HTTP_401_UNAUTHORIZED)
+

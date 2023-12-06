@@ -17,5 +17,5 @@ urlpatterns = [
     path('filtering_matches/', views.filtering_matches, name='filtering_matches'),
     path('search_matches/', views.search_matches, name='search_matches'),
     path('liked_you_matches/', views.liked_you_matches, name='liked_you_matches'),
-
+    path('get_matches_by_preference/', views.get_matches_by_preference, name='get_matches_by_preference'),
 ]

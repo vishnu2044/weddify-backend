@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import redirect
 from rest_framework import status
 from user_accounts.models import UserProfile, PremiumVersion
+from .serializer import PremiumUserSerializer
 
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
@@ -89,9 +90,33 @@ def update_premium_status(request):
                     user=user,
                     expiry_date=expairy_date,
                     plan_name=plan_type,
+                    plan_count = duration,
                     amount_paid=int(total_amount)
                 )
             return Response({'message': 'success'}, status=status.HTTP_200_OK)
     except UserProfile.DoesNotExist:
         return Response({"error": 'user profile is not created yet'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_user_is_premium(request):
+    user = request.user
+    try:
+        premium_user = UserProfile.objects.get(user = user, is_premium_user = True)
+        try:
+            plan_details = PremiumVersion.objects.get(user = user)
+            serializer = PremiumUserSerializer(plan_details)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>")
+            print(">>>>>>>>>>>>>>>>>>>>>>>>")
+            print(serializer.data)
+            print(">>>>>>>>>>>>>>>>>>>>>>>>")
+            print(">>>>>>>>>>>>>>>>>>>>>>>>")
+
+            return Response(data = serializer.data, status= status.HTTP_200_OK)
+        except PremiumVersion.DoesNotExist:
+            return Response({"message" : "user dont have premium"}, status=status.HTTP_404_NOT_FOUND)
+
+    except UserProfile.DoesNotExist:
+        return Response({"message" : "user dont have premium"}, status=status.HTTP_404_NOT_FOUND)
 
