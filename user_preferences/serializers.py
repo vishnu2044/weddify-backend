@@ -9,8 +9,6 @@ class BasicPreferencesSerialzer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        # Update the instance with validated_data
-        print("::::::::::::::::::::::::::: serializer updating is working::::::::::::::::::::::::::::::::")
         instance.mother_tongue = validated_data.get('mother_tongue', instance.mother_tongue)
         instance.age_from = validated_data.get('age_from', instance.age_from)
         instance.age_to = validated_data.get('age_to', instance.age_to)
@@ -35,7 +33,6 @@ class ProfessionalPreferenceSerializer(serializers.ModelSerializer):
         fields = "__all__"
     
     def update(self, instance, validated_data):
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! professional preference serializer is working!!!!!!!!!!!!!!")
         instance.education = validated_data.get('education', instance.education)
         instance.college = validated_data.get('college', instance.college)
         instance.working_sector = validated_data.get('working_sector', instance.working_sector)
@@ -43,7 +40,6 @@ class ProfessionalPreferenceSerializer(serializers.ModelSerializer):
         instance.occupation = validated_data.get('occupation', instance.occupation)
         instance.organization = validated_data.get('organization', instance.organization)
         instance.save()
-        print("instance saved !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         return instance
     

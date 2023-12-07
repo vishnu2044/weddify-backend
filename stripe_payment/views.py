@@ -20,7 +20,8 @@ from django.utils import timezone
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-YOUR_DOMAIN = 'http://localhost:4242'
+# YOUR_DOMAIN = 'http://localhost:4242'
+YOUR_DOMAIN = 'http://localhost:3000'
 
 
 class StripeCheckOutView(APIView):
@@ -32,7 +33,6 @@ class StripeCheckOutView(APIView):
         plan_type = data['type']
         duration = data['duration'] 
         try:
-            print('asdfgh')
             checkout_session = stripe.checkout.Session.create(
                  line_items=[{
                     'price_data': {
@@ -63,7 +63,6 @@ class StripeCheckOutView(APIView):
 
 @api_view(['POST'])
 def update_premium_status(request):
-    print("It is working")
     user_id = request.POST.get("user_id")
     total_amount = request.POST.get("totalAmount")
     plan_type = request.POST.get("planType")
@@ -107,12 +106,6 @@ def check_user_is_premium(request):
         try:
             plan_details = PremiumVersion.objects.get(user = user)
             serializer = PremiumUserSerializer(plan_details)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>")
-            print(">>>>>>>>>>>>>>>>>>>>>>>>")
-            print(serializer.data)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>")
-            print(">>>>>>>>>>>>>>>>>>>>>>>>")
-
             return Response(data = serializer.data, status= status.HTTP_200_OK)
         except PremiumVersion.DoesNotExist:
             return Response({"message" : "user dont have premium"}, status=status.HTTP_404_NOT_FOUND)

@@ -15,15 +15,6 @@ class PrevieousMessagesView(generics.ListAPIView):
     def get_queryset(self):
         user2 = int(self.kwargs['user1'])
         user1 = int(self.kwargs['user2'])
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print("get query set works while user1 ::::::::", user1, "user 2", user2)
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        
-
         thread_suffix = f"{user1}_{user2}" if user1 > user2 else f"{user2}_{user1}"
         thread_name = 'chat_'+thread_suffix
         queryset = ChatMessage.objects.filter(thread_name = thread_name).exclude(message__isnull=True)
@@ -63,10 +54,6 @@ class ChatListView(generics.ListAPIView):
         for entry in distinct_receivers:
             distinct_usernames.add(entry['reciever__username'])
 
-        print("the chat list>>>>>>>>>>>>>>>>")
-        print("the chat list>>>>>>>>>>>>>>>>")
-        print("the chat list>>>>>>>>>>>>>>>>", distinct_senders)
-        print("the chat list>>>>>>>>>>>>>>>>")
         return distinct_usernames
         
     def get_serializer_context(self):
@@ -86,7 +73,6 @@ class UpdateMessageStatus(APIView):
             t = ChatMessage.objects.filter(sender = sender_id, reciever = user_id, is_read = False)
             print(len(t))
             t.update(is_read = True)
-            print("messages updated successfully !!!!!!!!!!!!!!!!!!!!!")
             return Response(data={'message': 'success'}, status= status.HTTP_200_OK)
         
         except :

@@ -31,7 +31,6 @@ def admin_login(request):
     password = request.data.get('password')
 
     user = authenticate(request, username = username, password = password)
-    print("admin user is ", user)
 
     if user is not None and user.is_superuser:
         serializer = AdminTokenObtainPairSerializer(data = {'username' : username, 'password': password})
@@ -208,7 +207,7 @@ def get_premium_plan_details(request):
         serializer = PremiumPlanSerilalizer(plan_details)
         serializer_data = serializer.data
         serializer_data['yearly_plan_month_rate'] = yearly_plan_month_rate
-        print("premium plans:::::::::::::::::", serializer.data)
+
         return Response(data = serializer_data, status=status.HTTP_200_OK)
     
     else:

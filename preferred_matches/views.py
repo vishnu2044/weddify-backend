@@ -25,7 +25,7 @@ def get_matches(request):
             blocked_user_ids = blocked_list.values_list('blocked_user__id', flat=True)
             userlist = userlist.exclude(id__in = blocked_user_ids)
         except UserBlockedList.DoesNotExist:
-            print("user block list not excits!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("user block list not excits")
         basic_preferences = BasicPreferences.objects.get(user=user)
 
         user_list = userlist.filter(userprofile__gender=basic_preferences.gender)
@@ -208,7 +208,6 @@ def like_match(request, match_id):
             return Response(data={'message': "user liked the match"}, status=status.HTTP_200_OK)
         
         else:
-            print("User has already liked the match")
             return Response(data={'message': "user has already liked the match"}, status=status.HTTP_200_OK)
 
     except User.DoesNotExist:

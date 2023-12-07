@@ -45,15 +45,12 @@ def get_basic_preferences(request):
 
 def auto_add_basic_preferences(request):
     user = request.user
-    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     
     basic_preferences = BasicPreferences.objects.filter(user=user).first()
     if basic_preferences:
-        print("table is already created !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return
         
     else:
-        print("auto add user basic preferences !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         basic_preferences = BasicPreferences.objects.create(user=user)
 
     try:
@@ -81,7 +78,6 @@ def auto_add_basic_preferences(request):
         basic_preferences.citizenship = user_basic_details.citizenship
         basic_preferences.save()
     except (UserProfile.DoesNotExist, UserBasicDetails.DoesNotExist):
-        print("got an error !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return Response({'message': "basic details or user profile is not created."})
     return Response({'message': "Basic preferences updated successfully."})
 
@@ -90,7 +86,6 @@ def auto_add_basic_preferences(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_basic_preferences(request):
-    print("basic preference called !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     user = request.user
     try:
         basic_details =  BasicPreferences.objects.get(user = user)
@@ -102,13 +97,10 @@ def update_basic_preferences(request):
 
 
     if serializer.is_valid():
-        print(":::::::::::::::::::::::   basic details serializer is valid ::::::::::::::::::::::::::::::")
         serializer.save()
         data = serializer.data
-        print("serializer data ::::::::::::::::::::::::::::::::::", data)
     else:
         data = serializer.errors
-        print("basic details serializer is not working  error ::::::::::::::::", data)
     return Response(data)
 
 
@@ -143,16 +135,13 @@ def get_professional_preferences(request):
 
 
 def auto_update_professional_preference(request):
-    print("auto update called !!!!!!!!!!!!!!!!")
     user = request.user
 
     try:
         professional_preference = ProfessionalPreferences.objects.get(user=user)
-        print("Professional preferences already exist")
         return
     except ProfessionalPreferences.DoesNotExist:
         professional_preference = ProfessionalPreferences.objects.create(user=user)
-        print("Professional preferences created")
 
     try:
         professional_data = ProfessionalDetails.objects.get(user=user)
@@ -165,16 +154,13 @@ def auto_update_professional_preference(request):
         professional_preference.organization = 'any'
         professional_preference.working_location = 'any'
         professional_preference.save()
-        print("Professional preferences updated")
 
     except ProfessionalDetails.DoesNotExist:
-        print("Auto update error: user didn't add professional details")
         return Response({'error': "User didn't add professional details!"}, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PATCH']) 
 @permission_classes([IsAuthenticated])
 def update_prfessional_preference(request):
-    print("basic preference called !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     user = request.user
     try:
         professional_preferences =  ProfessionalPreferences.objects.get(user = user)
@@ -184,13 +170,10 @@ def update_prfessional_preference(request):
     serializer = ProfessionalPreferenceSerializer(instance=professional_preferences, data=request.data,  partial=True)
 
     if serializer.is_valid():
-        print(":::::::::::::::::::::::   professional preference serializer is valid ::::::::::::::::::::::::::::::")
         serializer.save()
         data = serializer.data
-        print("serializer data ::::::::::::::::::::::::::::::::::", data)
     else:
         data = serializer.errors
-        print("basic details serializer is not working  error ::::::::::::::::", data)
     return Response(data)
 
 
@@ -223,11 +206,9 @@ def auto_update_religional_preferences(request):
     user = request.user
     try:
         religional_preference = ReligionalPreferences.objects.get(user=user)
-        print("Professional preferences already exist")
         return
     except ReligionalPreferences.DoesNotExist:
         religional_preference = ReligionalPreferences.objects.create(user=user)
-        print("Professional preferences created")
 
     try:
         religional_data = ReligionalDetails.objects.get(user=user)
@@ -238,10 +219,8 @@ def auto_update_religional_preferences(request):
 
 
         religional_preference.save()
-        print("Professional preferences updated")
 
     except ReligionalDetails.DoesNotExist:
-        print("Auto update error: user didn't add rligiounal details")
         return Response({'error': "User didn't add religiounal details!"}, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -249,23 +228,18 @@ def auto_update_religional_preferences(request):
 @api_view(['PATCH']) 
 @permission_classes([IsAuthenticated])
 def update_religiounal_preference(request):
-    print("basic preference called !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     user = request.user
     try:
         religional_preferences =  ReligionalPreferences.objects.get(user = user)
-        print("religios preference table get !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     except ReligionalPreferences.DoesNotExist:
         religional_preferences = ReligionalPreferences.objects.create(user=user)
-        print("religios preference table created !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        
 
     serializer = ReligiounalPreferenceSerializer(instance=religional_preferences, data=request.data,  partial=True)
 
     if serializer.is_valid():
-        print(":::::::::::::::::::::::   religious preference serializer is valid ::::::::::::::::::::::::::::::")
         serializer.save()
         data = serializer.data
-        print("serializer data ::::::::::::::::::::::::::::::::::", data)
     else:
         data = serializer.errors
-        print("basic details serializer is not working  error ::::::::::::::::", data)
     return Response(data)

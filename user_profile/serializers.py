@@ -37,8 +37,6 @@ class ProfileSerializer(ModelSerializer):
         # if UserProfile.phone_number != new_phone_number and UserProfile.objects.filter(phone_number = new_phone_number).exists():
         #     return Response({'error' : "phone number is already exists!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    serializer udpate  is calling   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(validated_data)
         instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
         instance.phone_number = validated_data.get('phone_number', instance.phone_number)
         instance.profile_img = validated_data.get('profile_img', instance.profile_img)
@@ -46,8 +44,6 @@ class ProfileSerializer(ModelSerializer):
         instance.unique_user_id = self.context.get("user_unique_id")
         instance.save()
 
-
-        print("##################################    Update serialzer  worked !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return instance
     
 
@@ -59,8 +55,7 @@ class UserDetailsSeriallzer(serializers.ModelSerializer):
         fields = ('mother_tongue', 'eating_habit', 'drinking_habit', 'smoking_habit', 'martial_status', 'height', 'body_type', 'physical_status', 'location', 'citizenship' )
 
     def update(self, instance, validated_data):
-        # Update the instance with validated_data
-        print("::::::::::::::::::::::::::: serializer updating is working::::::::::::::::::::::::::::::::")
+
         instance.mother_tongue = validated_data.get('mother_tongue', instance.mother_tongue)
         instance.age = self.context.get("user_age")
         instance.eating_habit = validated_data.get('eating_habit', instance.eating_habit)
@@ -73,12 +68,11 @@ class UserDetailsSeriallzer(serializers.ModelSerializer):
         instance.location = validated_data.get('location', instance.location)
         instance.citizenship = validated_data.get('citizenship', instance.citizenship)
 
-        # Save the instance after updating
+        
         instance.save()
         return instance
     
 class UserProfessionalDetailsSeriallzer(ModelSerializer):
-    print("creating of profession works::::::::::::::::::::::::::::::::::::::::::::::::")
     class Meta:
         model = ProfessionalDetails
         fields = "__all__"
@@ -95,7 +89,6 @@ class UserProfessionalDetailsSeriallzer(ModelSerializer):
         return instance
     
 class UserReligionalDetailsSeriallzer(ModelSerializer):
-    print("creating of religious details works::::::::::::::::::::::::::::::::::::::::::::::::")
     class Meta:
         model = ReligionalDetails
         fields = "__all__"

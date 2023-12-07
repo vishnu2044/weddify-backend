@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -9,8 +8,8 @@ from user_accounts.models import UserProfile
 from .models import UserBasicDetails, ProfessionalDetails, ReligionalDetails, UserBlockedList
 from user_preferences.views import auto_add_basic_preferences, auto_update_professional_preference, auto_update_religional_preferences
 import time
-from datetime import datetime, date
-from django.shortcuts import get_object_or_404
+from datetime import datetime
+
 
 
 def unique_user_id_generator(request):

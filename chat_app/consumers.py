@@ -16,7 +16,6 @@ class PersonalChatConsumer(AsyncWebsocketConsumer):
             if int(current_user_id) > int(other_user_id)
             else f"{other_user_id}_{current_user_id}"
         )
-        print("::::::::::::::::::::consumer id", current_user_id)
         self.room_group_name = f'chat_{self.room_name}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -27,14 +26,9 @@ class PersonalChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data=None, bytes_data = None):
         data = json.loads(text_data)
-        print("^^^^^^^^^^^^^^^^^^^^^^",data, '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
         message = data['message']
-        print(message)
         sender_username =  data['senderUsername']
-        reciever_username = data['receiver_username']
-        print('receiver name >>>>>>>>>', reciever_username)
-        print('sender name >>>>>>>>>', sender_username)
-        
+        reciever_username = data['receiver_username']     
 
         await self.save_message(
             sender_username = sender_username, 
@@ -53,8 +47,7 @@ class PersonalChatConsumer(AsyncWebsocketConsumer):
         )
     
     async def chat_message(self, event):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>> chat message function working")
+
         message = event['message']
         username = event['senderUsername']
 
@@ -81,12 +74,6 @@ class PersonalChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, sender_username, reciever_username, message, thread_name):
         sender_instance = User.objects.get(username = sender_username)
         receiver_instance = User.objects.get(username = reciever_username)
-        print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-        print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-        print(sender_username, 'sender_username>>>>>>>>>>>>>>>>>>>>')
-        print(reciever_username, 'receiver_username>>>>>>>>>>>>>>>>')
-        print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-        print("::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
         ChatMessage.objects.create(sender = sender_instance, reciever = receiver_instance, message=message, thread_name = thread_name)
 
     

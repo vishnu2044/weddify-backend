@@ -79,9 +79,6 @@ class ChatListSerializer(serializers.ModelSerializer):
         user = User.objects.get(pk=user_id)
         username = user.username
         unread_count = ChatMessage.objects.filter(reciever__username=obj, sender__username=username, is_read=False).count()
-        print(unread_count)
-        print(user,"  reciever >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(obj,"sender  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")     
         return unread_count
         
 
