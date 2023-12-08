@@ -14,6 +14,9 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from decouple import config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +33,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 DEBUG = config('DEBUG', cast=bool, default = True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -244,5 +247,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
-SITE_URL = config('SITE_URL')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+SITE_URL = os.getenv('SITE_URL')
