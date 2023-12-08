@@ -14,14 +14,15 @@ from rest_framework.permissions import IsAuthenticated
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
+from decouple import config
 
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-# YOUR_DOMAIN = 'http://localhost:4242'
-YOUR_DOMAIN = 'http://localhost:3000'
+YOUR_DOMAIN = config('YOUR_DOMAIN')
+
 
 
 class StripeCheckOutView(APIView):

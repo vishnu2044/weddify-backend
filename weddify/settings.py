@@ -30,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 DEBUG = config('DEBUG', cast=bool, default = True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [config('ALLOWED_HOSTS')]
 
 
 # Application definition
@@ -170,24 +170,24 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'weddify',
-        'USER': 'postgres',
-        'PASSWORD': 'vishnu2044',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",  # Use the correct address and port for your Redis server
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Use the correct address and port for your Redis server
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 
 # Password validation
@@ -242,5 +242,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-STRIPE_SECRET_KEY = 'sk_test_51OHJjSSAkBwZiHFcjZiOg3qJ8kyomYfMrt53kFPGH1iFI3rYXXTnK5xDS9SdYQOm7mQCLpi6zw36elZ8ypmorHvi0026UEty9R'
-SITE_URL = 'http://localhost:3000/home/payment-confirmation-page'
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+SITE_URL = config('SITE_URL')
