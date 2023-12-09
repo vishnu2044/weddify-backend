@@ -150,7 +150,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'weddify.wsgi.application'
+WSGI_APPLICATION = 'weddify.wsgi.application'
 
 ASGI_APPLICATION = 'weddify.asgi.application'
 
@@ -159,10 +159,10 @@ ASGI_APPLICATION = 'weddify.asgi.application'
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": config("CHANNEL_LAYERS_BACKEND", default="channels_redis.core.RedisChannelLayer"),
+        "BACKEND": config("CHANNEL_LAYERS_BACKEND"),
         "CONFIG": {
-            "hosts": [(config('REDIS_HOST', default='localhost'), config('REDIS_PORT', default=6379))],
-        },
+            "hosts":[(config("REDIS_HOST"))]
+        }
     },
 }
 
@@ -183,15 +183,15 @@ DATABASES = {
     }
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # Use the correct address and port for your Redis server
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/1",  # Use the correct address and port for your Redis server
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 
 # Password validation

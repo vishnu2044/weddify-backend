@@ -199,7 +199,10 @@ class LikedMatchesProfiles(serializers.ModelSerializer):
     def get_profile_img(self, obj):
         try:
             data = UserProfile.objects.get(user=obj)
-            return data.profile_img.url
+            if data.profile_img :
+                return data.profile_img.url
+            else:
+                return None
         except UserProfile.DoesNotExist:
             return None  
 
